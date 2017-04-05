@@ -29,7 +29,7 @@ if ~exist('start','var')
     start(1)=5;             % [donor] average(uM)
     start(2)=5;             % [acceptor]average(uM
     start(3)=0;             % [complex] average(uM)
-    start(4)=[];            % deprecated
+    start(4)=0.75;          % deprecated
     start(5)=1e5;           % k_on;
     start(6)=1e-1;          % k_off
     start(7)= 0.6;          % FRET efficiency of complex C
