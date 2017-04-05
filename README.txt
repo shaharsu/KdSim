@@ -1,5 +1,8 @@
 This Matlab script package contains all the tools needed to simulate protein-protein interactions
 detected by FRET and induced by cellular volume changes, as specified in the original paper.
+
+The script was programmed and tested using Matlab version R2016a.
+
 The package contains the following scripts:
 
 KdSimGUI.m - GUI to help visualize simulation results
