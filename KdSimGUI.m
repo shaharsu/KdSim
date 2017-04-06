@@ -92,42 +92,43 @@ for i=1:n_runs
     [R_i(i,1),G_i(i,1),dR(i,1),dG(i,1),dF(i,1),dV(i,1),A_i(i,1),B_i(i,1),C_i(i,1),ks_on(i,1),ks_off(i,1)]=run_simpleKd(start);
 end
 
+% These are experimental values that can be plotted on top of the
+% simulations for comparison. Just uncomment lines beginning with h1p1,
+% h2p1, h3p1.
+
+% AcGFP1-mCherry
 % dG_exp=[0.15612 0.02111 0 -0.02719 -0.03314 -0.09905];
 % dR_exp=[-0.08422 -0.02823 0 0.03719 0.10335 0.15899];
 % dF_exp=[-0.16535 -0.04172 0 0.05331 0.12445 0.22032];
 
+% GFP-GAPDH + PGK-mCherry
 dG_exp = [0.03 0.001 0 -0.02 -0.03 -0.06];
 dR_exp = [-0.04 -0.02 0 0.02 0.1 0.15];
 dF_exp = [-0.17 -0.04 0 0.05 0.12 0.22];
 
-h1=scatter(handles.axes1,dV,dG,'markeredgecolor','black','linewidth',1,'markerfacecolor','green'  );
+h1=scatter(handles.axes1,dV,dG,'markeredgecolor','black','linewidth',1,'markerfacecolor','green');
 hold on
 % h1p1=line(handles.axes1,V_choice,dG_exp,'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','red','markersize',15);
-% set(handles.axes6,'userdata',[R_i,G_i,dR,dG,dF,dV,A_i,B_i,C_i,ks_on,ks_off],'colororder',[(dV-min(dV))/(max(dV)-min(dV)) dV-dV 1-(dV-min(dV))/(max(dV)-min(dV))]);
 hold off
+ylabel(handles.axes1,'\chi_{green}');
+set(handles.axes1,'xticklabel','');
 
 h2=scatter(handles.axes6,dV,dR,'markeredgecolor','black','linewidth',1,'markerfacecolor','red');
 hold on
 % h2p1=line(handles.axes6,V_choice,dR_exp,'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','red','markersize',15);
-% set(handles.axes6,'userdata',[R_i,G_i,dR,dG,dF,dV,A_i,B_i,C_i,ks_on,ks_off],'colororder',[(dV-min(dV))/(max(dV)-min(dV)) dV-dV 1-(dV-min(dV))/(max(dV)-min(dV))]);
 hold off
+ylabel(handles.axes6,'\chi_{red}');
+set(handles.axes6,'xticklabel','');
 
 h3=scatter(handles.axes7,dV,dF,'markeredgecolor','black','linewidth',1,'markerfacecolor',[1 0.6 0]);
 hold on
 % h3p1=line(handles.axes7,V_choice,dF_exp,'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','red','markersize',15);
-%h3p1=line(handles.axes7,V_choice,[-0.17 -0.05 -0.0062931 .06 .13 0.27],'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','red','markersize',15);
-%set(handles.axes6,'userdata',[R_i,G_i,dR,dG,dF,dV,A_i,B_i,C_i,ks_on,ks_off],'colororder',[(dV-min(dV))/(max(dV)-min(dV)) dV-dV 1-(dV-min(dV))/(max(dV)-min(dV))]);
 hold off
-set([handles.axes1,handles.axes6],'userdata',[R_i,G_i,dR,dG,dF,dV,A_i,B_i,C_i,ks_on,ks_off],'colororder',[(dV-min(dV))/(max(dV)-min(dV)) dV-dV 1-(dV-min(dV))/(max(dV)-min(dV))]);
-set([h1,h2],'ButtonDownFcn',@plotPoint);
-%colorbar('peer',handles.axes1);
-%xlabel(handles.axes1,'dG');
-%ylabel(handles.axes2,'dR');
-%lim=0.2;%max(max(get(handles.axes1,'xlim')),max(get(handles.axes1,'ylim')));
-%line([-lim lim],[0 0],'color','black','parent',handles.axes1);
-%line([0 0],[-lim lim],'color','black','parent',handles.axes1);
-%line([-lim lim],[-lim lim],'color','black','parent',handles.axes1);
-%line([lim -lim],[-lim lim],'color','black','parent',handles.axes1);
+ylabel(handles.axes7,'\chi_{FRET}');
+xlabel(handles.axes7,'$\tilde{V}$','Interpreter','LaTex','FontSize',20);
+
+set([handles.axes1,handles.axes6,handles.axes7],'userdata',[R_i,G_i,dR,dG,dF,dV,A_i,B_i,C_i,ks_on,ks_off],'colororder',[(dV-min(dV))/(max(dV)-min(dV)) dV-dV 1-(dV-min(dV))/(max(dV)-min(dV))]);
+set([h1,h2,h3],'ButtonDownFcn',@plotPoint);
 
 
 
@@ -179,21 +180,25 @@ h2=line('xdata',t(t_ini:t_fin),'ydata',[B(t_ini:t_fin)],'marker','.','parent',ax
 h3=line('xdata',t(t_ini:t_fin),'ydata',[C(t_ini:t_fin)],'marker','.','parent',ax2,'color','b');
 title(ax2,'Concentrations')
 legend(ax2,'donor','acceptor','complex')
-ylabel(ax2,'\muM')
+ylabel(ax2,'c (\muM)')
 xlabel(ax2,'t (s)')
 assignin('base','simul',[t; A; B; C; G; R; F]');
 
-h3=line('xdata',t(t_ini:t_fin),'ydata',[G(t_ini:t_fin)],'marker','.','parent',axG,'color','g');
+h31=line('xdata',t(t_ini:t_fin),'ydata',[G(t_ini:t_fin)],'marker','.','parent',axG,'color','g');
 title(axG,'Green emission')
 ylabel(axG,'I (AU)')
 xlabel(axG,'t (s)')
 
-h3=line('xdata',t(t_ini:t_fin),'ydata',[R(t_ini:t_fin)],'marker','.','parent',axR,'color','r');
+h32=line('xdata',t(t_ini:t_fin),'ydata',[R(t_ini:t_fin)],'marker','.','parent',axR,'color','r');
 title(axR,'Red emission')
 ylabel(axR,'I (AU)')
 xlabel(axR,'t (s)')
 
-h3=line('xdata',t(t_ini:t_fin),'ydata',F(t_ini:t_fin),'marker','.','parent',axF,'color','m');
+h33=line('xdata',t(t_ini:t_fin),'ydata',F(t_ini:t_fin),'marker','.','parent',axF,'color','m');
+title(axF,'FRET')
+ylabel(axF,'E_F (AU)')
+xlabel(axF,'t (s)')
+
 tableData=[{point(6)} ;{A(1)} ;{B(1)} ;{point(3)} ;{point(4)}];
 set(table,'data',tableData);
 
