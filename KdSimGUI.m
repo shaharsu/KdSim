@@ -37,6 +37,21 @@ function KdSimGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for KdSimGUI
 handles.output = hObject;
 
+%----------------------------------------------
+% define the experimental results to compare to:
+%-----------------------------------------------
+
+%volume changes (V_f calculated from V_total in this case)
+handles.dV_exp=1-((1-[1.25 1.07 1 0.92 0.83 0.74])./.7);
+
+% AcGFP1 mCherry dataset
+handles.dG_exp = [0.15612 0.02111 0 -0.02719 -0.03498 -0.09905];
+handles.dR_exp =[-0.08422 -0.02823 0 0.03719 0.10335 0.15899];
+
+% GAPDH-PGK dataset
+% handles.dG_exp= [0.03 0.001 0 -0.02 -0.03 -0.06];
+% handles.dR_exp= [-0.04 -0.02 0 0.02 0.1 0.15];
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -61,13 +76,14 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 %---------------------------------
 % Executes on pushing the "run" button
 %----------------------------------
-
-n_runs=str2double(get(handles.simNo,'string'))*6;
+set(hObject,'BackgroundColor','r');
+pause(0.1);
+V_choice=handles.dV_exp;
+n_V=size(V_choice,2);
+n_runs=str2double(get(handles.simNo,'string'))*n_V;
 k_on=str2double(get(handles.kon,'string'));
 k_off=str2double(get(handles.koff,'string'));
 set(handles.Kd,'string',num2str(k_off/k_on));
-% A_in=str2double(get(handles.A_conc,'string'));
-% B_in=str2double(get(handles.B_conc,'string'));
 stoiA=str2double(get(handles.stoiA,'string'));
 stoiB=str2double(get(handles.stoiB,'string'));
 E_C=str2double(get(handles.E_C,'string'));
@@ -83,53 +99,45 @@ for i=1:n_runs
     while (A_in<0)
         A_in = (str2double(get(handles.A_conc,'string'))*randn(1)+6)*1e-6; % A from experimental distribution (sigma=6)
     end
-    while (B_in<0)
+    while (B_in/A_in<0.5||B_in/A_in>2)
         B_in = (str2double(get(handles.B_conc,'string'))*randn(1)+6)*1e-6; % A from experimental distribution (sigma=6)
     end
-    V_choice=[1.25 1.07 1 0.92 0.83 0.74];
-    dV_i = V_choice(mod(i,6)+1)+randn()*0.01; % dV from experimental values
+    dV_i = V_choice(mod(i,size(V_choice,2))+1)+randn()*0.01; % dV from experimental values
     start=[A_in B_in 0 dV_i k_on k_off E_C stoiA stoiB]; % run_simpleKd input
     [R_i(i,1),G_i(i,1),dR(i,1),dG(i,1),dF(i,1),dV(i,1),A_i(i,1),B_i(i,1),C_i(i,1),ks_on(i,1),ks_off(i,1)]=run_simpleKd(start);
 end
 
-% These are experimental values that can be plotted on top of the
-% simulations for comparison. Just uncomment lines beginning with h1p1,
-% h2p1, h3p1.
+% If you want to remove outliers (as defined by the deleteoutliers.m
+% function). Currently disabled.
+%[~,idx,~] = deleteoutliers(dR);
+idx=[];
 
-% AcGFP1-mCherry
-% dG_exp=[0.15612 0.02111 0 -0.02719 -0.03314 -0.09905];
-% dR_exp=[-0.08422 -0.02823 0 0.03719 0.10335 0.15899];
-% dF_exp=[-0.16535 -0.04172 0 0.05331 0.12445 0.22032];
 
-% GFP-GAPDH + PGK-mCherry
-dG_exp = [0.03 0.001 0 -0.02 -0.03 -0.06];
-dR_exp = [-0.04 -0.02 0 0.02 0.1 0.15];
-dF_exp = [-0.17 -0.04 0 0.05 0.12 0.22];
-
-h1=scatter(handles.axes1,dV,dG,'markeredgecolor','black','linewidth',1,'markerfacecolor','green');
+h1=scatter(handles.axes1,dV(setdiff(1:size(dR,1),idx)),dG(setdiff(1:size(dR,1),idx)),'markeredgecolor','black','linewidth',1,'markerfacecolor','green'  );
 hold on
-% h1p1=line(handles.axes1,V_choice,dG_exp,'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','red','markersize',15);
+% Uncomment these two to compare with Exp. results
+% h1p2=line(handles.axes1,V_choice,handles.dG_exp,'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','blue','markersize',15);
+% h1p3=line(handles.axes1,nanmean(reshape(dV,n_V,n_runs/n_V)',1),nanmean(reshape(dG,n_V,n_runs/n_V)',1),'linewidth',5,'linestyle','none','marker','s','markeredgecolor','black','markerfacecolor','none','markersize',15);
 hold off
 ylabel(handles.axes1,'\chi_{green}');
 set(handles.axes1,'xticklabel','');
 
-h2=scatter(handles.axes6,dV,dR,'markeredgecolor','black','linewidth',1,'markerfacecolor','red');
+h2=scatter(handles.axes6,dV(setdiff(1:size(dR,1),idx)),dR(setdiff(1:size(dR,1),idx)),'markeredgecolor','black','linewidth',1,'markerfacecolor','red');
 hold on
-% h2p1=line(handles.axes6,V_choice,dR_exp,'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','red','markersize',15);
+% Uncomment these two to compare with Exp. results
+% h2p2=line(handles.axes6,V_choice,handles.dR_exp,'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','blue','markersize',15);
+% h2p3=line(handles.axes6,nanmean(reshape(dV,n_V,n_runs/n_V)',1),nanmean(reshape(dR,n_V,n_runs/n_V)',1),'linewidth',5,'linestyle','none','marker','s','markeredgecolor','black','markerfacecolor','none','markersize',15);
 hold off
 ylabel(handles.axes6,'\chi_{red}');
 set(handles.axes6,'xticklabel','');
 
 h3=scatter(handles.axes7,dV,dF,'markeredgecolor','black','linewidth',1,'markerfacecolor',[1 0.6 0]);
-hold on
-% h3p1=line(handles.axes7,V_choice,dF_exp,'linestyle','none','marker','o','markeredgecolor','black','markerfacecolor','red','markersize',15);
-hold off
+set([handles.axes1,handles.axes6],'userdata',[R_i,G_i,dR,dG,dF,dV,A_i,B_i,C_i,ks_on,ks_off]);
 ylabel(handles.axes7,'\chi_{FRET}');
 xlabel(handles.axes7,'$\tilde{V}$','Interpreter','LaTex','FontSize',20);
 
-set([handles.axes1,handles.axes6,handles.axes7],'userdata',[R_i,G_i,dR,dG,dF,dV,A_i,B_i,C_i,ks_on,ks_off],'colororder',[(dV-min(dV))/(max(dV)-min(dV)) dV-dV 1-(dV-min(dV))/(max(dV)-min(dV))]);
-set([h1,h2,h3],'ButtonDownFcn',@plotPoint);
-
+set([h1,h2],'ButtonDownFcn',@plotPoint);
+set(hObject,'BackgroundColor',[0.940000000000000 0.940000000000000 0.940000000000000])
 
 
 function plotPoint(src,evntData)
@@ -186,12 +194,12 @@ assignin('base','simul',[t; A; B; C; G; R; F]');
 
 h31=line('xdata',t(t_ini:t_fin),'ydata',[G(t_ini:t_fin)],'marker','.','parent',axG,'color','g');
 title(axG,'Green emission')
-ylabel(axG,'I (AU)')
+ylabel(axG,'F_{green} (AU)')
 xlabel(axG,'t (s)')
 
 h32=line('xdata',t(t_ini:t_fin),'ydata',[R(t_ini:t_fin)],'marker','.','parent',axR,'color','r');
 title(axR,'Red emission')
-ylabel(axR,'I (AU)')
+ylabel(axR,'F_{red} (AU)')
 xlabel(axR,'t (s)')
 
 h33=line('xdata',t(t_ini:t_fin),'ydata',F(t_ini:t_fin),'marker','.','parent',axF,'color','m');
@@ -403,7 +411,8 @@ function copyClp_Callback(hObject, eventdata, handles)
 % format is [A_i B_i dV chi_G chi_R] for all volume changes.
 % First two rows are AVG and SD of the data.
 %----------------------------------------
-
+set(hObject,'BackgroundColor','r')
+pause(0.2);
 format long;
 allData=get(handles.axes1,'userdata');
 selData=[allData(:,7),allData(:,8),allData(:,6) allData(:,5) allData(:,4) allData(:,3)]; %dV, dF, dG, dR
@@ -423,6 +432,8 @@ stdData=reshape(std(finalData,'omitnan'),3,6)';
 clipData=[meanConc(:,1) stdConc(:,1) meanConc(:,2) stdConc(:,2) meanData(:,1),stdData(:,1),meanData(:,2),stdData(:,2),meanData(:,3),stdData(:,3)];
 assignin('base','allData',finalDataWorkspace);
 mat2clip(finalDataWorkspace);
+set(hObject,'BackgroundColor',[0.940000000000000 0.940000000000000 0.940000000000000])
+
 
 % hObject    handle to copyClp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -442,27 +453,29 @@ function FitInit_Callback(hObject, eventdata, handles)
 
 %----------------------------------------
 % Executes on "Fit" button press
-% Not currently implemented.
+% Executes a short minimization procedure using sseRun_simpleKd. Exp.
+% values (dV_exp, dG_Exp, dR_exp) defined at gui startup.
 %----------------------------------------
 
-A=get(handles.axes1,'userdata');
-% dG_exp=[0.15612;0.02111;0;-0.02719;-0.03314;-0.09905];
-% dR_exp=[-0.08422;-0.02823;0;0.03719;0.10335;0.15899];
-% dF_exp=[-0.16535;-0.04172;0;0.05331;0.12445;0.22032];
-dG_exp = [0.03;0.001;0;-0.02;-0.03;-0.06];
-dR_exp = [-0.04;-0.02;0;0.02;0.1;0.15];
-dF_exp = [-0.17;-0.04;0;0.05;0.12;0.22];
+set(hObject,'BackgroundColor','r')
+pause(0.5);
+k_on=str2double(get(handles.kon,'string'));
+k_off=str2double(get(handles.koff,'string'));
+set(handles.Kd,'string',num2str(k_off/k_on));
+stoiA=str2double(get(handles.stoiA,'string'));
+stoiB=str2double(get(handles.stoiB,'string'));
+E_C=str2double(get(handles.E_C,'string'));
+A_in = str2double(get(handles.A_conc,'string'));
+B_in = str2double(get(handles.B_conc,'string'));
+x0 = log10(k_on);
+lb=(0.5*x0);
+ub=(1.2*x0);
+opts = optimoptions(@fmincon,'Algorithm','interior-point','display','none');
+start=[A_in B_in 0 0 k_on k_off E_C stoiA stoiB];
+X=fmincon(@(x)sseRun_simpleKd(x,start,handles.dV_exp,handles.dR_exp,handles.dG_exp),x0,[],[],[],[],lb,ub,[],opts);
+set(handles.kon,'String',num2str(10^X,'%2.2e'));
+set(hObject,'BackgroundColor',[0.940000000000000 0.940000000000000 0.940000000000000])
 
-dG=reshape(A(:,4),6,34);
-dG_ave=circshift(mean(dG,2),1);
-sse_dG=sum(sqrt((dG_ave-dG_exp).^2));
-dR=reshape(A(:,3),6,34);
-dR_ave=circshift(mean(dR,2),1);
-sse_dR=sum(sqrt((dR_ave-dR_exp).^2));
-dF=reshape(A(:,5),6,34);
-dF_ave=circshift(mean(dF,2),1);
-sse_dF=sum(sqrt((dF_ave-dF_exp).^2));
-dV=reshape(A(:,6),6,34);
 
 
 function getAvg_Callback(hObject, eventdata, handles)
@@ -472,7 +485,8 @@ function getAvg_Callback(hObject, eventdata, handles)
 % Copy average and SD of the time trace for red, green and FRET 
 % fluorescence for all points to clipboard
 %----------------------------------------
-
+set(hObject,'BackgroundColor','r')
+pause(0.5);
 allData=get(handles.axes1,'userdata');
 E_C = str2double(get(findobj(gcf,'tag','E_C'),'string'));
 kon = str2double(get(findobj(gcf,'tag','kon'),'string'));
@@ -500,6 +514,7 @@ for ii=1:size(R_norm,3)
     F_normMean(:,2*ii-1:2*ii)=[mean(squeeze(F_norm(:,:,ii)'),2,'omitnan') std(squeeze(F_norm(:,:,ii)'),0,2,'omitnan')];
 end
 mat2clip([t R_normMean(1:t_size,:) G_normMean(1:t_size,:) F_normMean(1:t_size,:)]);
+set(hObject,'BackgroundColor',[0.940000000000000 0.940000000000000 0.940000000000000])
 
 
 

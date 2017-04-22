@@ -1,10 +1,10 @@
 function [R_i,G_i,dR,dG,dF,dV,A_i,B_i,C_i,k_on,k_off,t_tot,A,B,C,R,G,F] = run_simpleKd(start)
-% 
+%
 % run_simpleKd is the main function that generates cell volume change data.
 % It can be used on its own, but is also used by KdSimGUI.m and
 % minimizeRun_simpleKd.m to generates chi data.
 %
-% The optional input vairable "start" can supply initial conditions: 
+% The optional input vairable "start" can supply initial conditions:
 % start = [A B C dV k_on k_off E_C stoiA stoiB]
 % you can also just supply k_on and k_off, or nothing at which uses default
 % settings shown below.
@@ -90,25 +90,6 @@ S_r = 10e3;   % cross section of donor at 475 nm
 QY_A = 0.8;   % quantum yield donor
 QY_B = 0.3;   % quantum yield acceptor
 
-% lets assume there are 3 C populations:
-% C0: E_C = 0
-% C1: E_C = 0.3
-% C2: E_C = 0.4
-% C3: E_C = 0.5
-% C4: E_C = 0.6
-%
-% Concentrations are: C = C0+C1+C2+C3+C4
-% [C0,C1,C2,C3,C4]=deal(0.11,0.22,0.34,0.22,0.11);
-% [C0,C1,C2,C3,C4]=deal(0.2);
-% [E_C1,E_C2,E_C3,E_C4]=deal(0.2,0.3,0.4,0.5);
-% R = l.*(B.*S_r.*QY_B + ... % Red cross-excitation from acceptor under blue light
-%     S_r.*QY_B.*C.*(C0+C1.*(1-E_C1)+C2.*(1-E_C2)+C3.*(1-E_C3)+C4.*(1-E_C4)) + ...  % Red cross-excitation from acceptor in complex under blue light
-%     S_g.*QY_B.*C.*(C1.*E_C1+C2*E_C2+C3*E_C3+C4*E_C4));% + ...  % Red FRET from complex
-% 
-% 
-% G = l.*(C.*S_g.*QY_A.*(C0+C1.*(1-E_C1)+C2.*(1-E_C2)+C3.*(1-E_C3)+C4.*(1-E_C4)) + ... % Green from complex
-%     A.*S_g.*QY_A); % + ... % Green from donor
-
 R = l.*(B.*S_r.*QY_B + ... % Red cross-excitation from acceptor under blue light
     S_r.*QY_B.*C.*(1-E_C) + ...  % Red cross-excitation from acceptor in complex under blue light
     S_g.*QY_B.*C.*(E_C));% + ...  % Red FRET from complex
@@ -177,16 +158,5 @@ if showfig==1
     
 end
 
-    function [value,isterminal,direction] = checkConv(t,y)
-        display(sprintf('t is %E yold is %E,y1 is %E, diff is %E',[t,y_old,y(1),y(1)-y_old]));
-        if abs(y(1)-y_old)<1e-10
-            value = 0;
-        else
-            value = 1;
-        end
-        y_old=y(1);
-        isterminal = 1; % stop the integration
-        direction = 0; % all events
 
-    end
 end
